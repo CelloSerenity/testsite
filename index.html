@@ -239,9 +239,7 @@
                     try {
                         const iconUrl = new URL(iconURL, previewUrl);
                         if (iconUrl.protocol === 'https:' || iconUrl.protocol === 'http:') {
-                            const githubIcon = iconUrl.hostname === 'github.com' && iconUrl.pathname.match(/^\/([^/]+)\/([^/]+)\/blob\/(.+)$/);
-                            const imageUrl = githubIcon ? 'https://raw.githubusercontent.com/' + githubIcon[1] + '/' + githubIcon[2] + '/' + githubIcon[3] : iconUrl.href;
-                            const icon = createEl('img', { class: 'source-icon', src: imageUrl, alt: '', loading: 'eager', fetchpriority: 'high' });
+                            const icon = createEl('img', { class: 'source-icon', src: iconUrl.href, alt: '', fetchpriority: 'high' });
                             sourcePreview.prepend(icon);
                         }
                     } catch (_) {}
