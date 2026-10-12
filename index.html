@@ -222,16 +222,24 @@
             sourcePreview.append(sourceInfo, urlDisplay);
             frag.appendChild(sourcePreview);
 
-            fetch(s).then(response => {
+            fetch(s).then(async response => {
                 if (!response.ok) throw new Error('Source unavailable');
-                return response.json();
+                const body = await response.text();
+                if (!(response.headers.get('content-type') || '').includes('text/html')) return JSON.parse(body);
+                const page = new DOMParser().parseFromString(body, 'text/html');
+                return {
+                    name: page.querySelector('.previewname')?.textContent || page.querySelector('meta[property="og:title"]')?.content,
+                    subtitle: page.querySelector('.previewcaption')?.textContent,
+                    iconURL: page.querySelector('meta[property="og:image"]')?.content || page.querySelector('.previewicon')?.getAttribute('src'),
+                    iconBase: response.url
+                };
             }).then(source => {
-                if (!source || typeof source !== 'object' || typeof source.name !== 'string') throw new Error('Invalid source');
+                if (!source || typeof source !== 'object' || typeof source.name !== 'string' || !source.name.trim()) throw new Error('Invalid source');
                 sourceName.textContent = source.name;
                 sourceSubtitle.textContent = typeof source.subtitle === 'string' ? source.subtitle : '';
                 if (typeof source.iconURL === 'string') {
                     try {
-                        const iconUrl = new URL(source.iconURL, s);
+                        const iconUrl = new URL(source.iconURL, source.iconBase || s);
                         if (iconUrl.protocol === 'https:' || iconUrl.protocol === 'http:') {
                             const icon = createEl('img', { class: 'source-icon', src: iconUrl.href, alt: '' });
                             sourcePreview.prepend(icon);
