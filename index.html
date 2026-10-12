@@ -182,9 +182,9 @@
                     input.focus();
                     return;
                 }
-                const excludePart = excludeParam ? '&exclude=' + excludeParam : '';
+                const excludePart = excludeParam ? '&exclude=' + encodeURIComponent(excludeParam) : '';
                 const oldAddressPart = isOldAddress ? '&old=true' : '';
-                window.location.href = window.location.pathname + '?url=' + rawVal + excludePart + oldAddressPart;
+                window.location.href = window.location.pathname + '?url=' + encodeURIComponent(rawVal) + excludePart + oldAddressPart;
             });
 
             return wrapper;
@@ -222,32 +222,29 @@
             sourcePreview.append(sourceInfo, urlDisplay);
             frag.appendChild(sourcePreview);
 
-            fetch(s).then(async response => {
+            fetch(s).then(response => {
                 if (!response.ok) throw new Error('Source unavailable');
-                const body = await response.text();
-                if (!(response.headers.get('content-type') || '').includes('text/html')) return JSON.parse(body);
-                const page = new DOMParser().parseFromString(body, 'text/html');
-                return {
-                    name: page.querySelector('.previewname')?.textContent || page.querySelector('meta[property="og:title"]')?.content,
-                    subtitle: page.querySelector('.previewcaption')?.textContent,
-                    iconURL: page.querySelector('meta[property="og:image"]')?.content || page.querySelector('.previewicon')?.getAttribute('src'),
-                    iconBase: response.url
-                };
+                return response.json();
             }).then(source => {
                 if (!source || typeof source !== 'object' || typeof source.name !== 'string' || !source.name.trim()) throw new Error('Invalid source');
                 sourceName.textContent = source.name;
                 sourceSubtitle.textContent = typeof source.subtitle === 'string' ? source.subtitle : '';
-                if (typeof source.iconURL === 'string') {
+                const iconURL = source.iconURL || source.apps?.find(app => typeof app.iconURL === 'string')?.iconURL;
+                if (typeof iconURL === 'string') {
                     try {
-                        const iconUrl = new URL(source.iconURL, source.iconBase || s);
+                        const iconUrl = new URL(iconURL, s);
                         if (iconUrl.protocol === 'https:' || iconUrl.protocol === 'http:') {
                             const icon = createEl('img', { class: 'source-icon', src: iconUrl.href, alt: '' });
                             sourcePreview.prepend(icon);
                         }
                     } catch (_) {}
                 }
-            }).catch(() => {
+            }).catch(error => {
                 sourceName.textContent = 'Source preview unavailable';
+                sourceSubtitle.textContent = error instanceof SyntaxError ? 'The URL did not return JSON.' :
+                    error instanceof TypeError ? 'The browser could not fetch this source. It may block cross-site requests.' :
+                    error.message === 'Invalid source' ? 'The JSON does not contain a source name.' :
+                    error.message;
             });
 
             function hrefWithR(choice) {
@@ -303,9 +300,9 @@
             try {
                 if (window.history && history.replaceState) {
                     const parts = [];
-                    parts.push('url=' + s);
-                    if (rParam) parts.push('r=' + rParam);
-                    if (excludeParam) parts.push('exclude=' + excludeParam);
+                    parts.push('url=' + encodeURIComponent(s));
+                    if (rParam) parts.push('r=' + encodeURIComponent(rParam));
+                    if (excludeParam) parts.push('exclude=' + encodeURIComponent(excludeParam));
                     if (isOldAddress) parts.push('old=true');
                     const newUrl = window.location.pathname + (parts.length ? '?' + parts.join('&') : '');
                     history.replaceState(null, '', newUrl);
