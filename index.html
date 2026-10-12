@@ -222,7 +222,8 @@
             sourcePreview.append(sourceInfo, urlDisplay);
             frag.appendChild(sourcePreview);
 
-            fetch(s).then(response => {
+            const previewUrl = /^https:\/\/apps\.altstore\.io\/?$/i.test(s) ? 'https://cdn.altstore.io/file/altstore/apps.json' : s;
+            fetch(previewUrl).then(response => {
                 if (!response.ok) throw new Error('Source unavailable');
                 return response.json();
             }).then(source => {
@@ -232,7 +233,7 @@
                 const iconURL = source.iconURL || source.apps?.find(app => typeof app.iconURL === 'string')?.iconURL;
                 if (typeof iconURL === 'string') {
                     try {
-                        const iconUrl = new URL(iconURL, s);
+                        const iconUrl = new URL(iconURL, previewUrl);
                         if (iconUrl.protocol === 'https:' || iconUrl.protocol === 'http:') {
                             const icon = createEl('img', { class: 'source-icon', src: iconUrl.href, alt: '' });
                             sourcePreview.prepend(icon);
