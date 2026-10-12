@@ -138,6 +138,10 @@
             return el;
         }
 
+        function sourceQueryValue(url) {
+            return encodeURIComponent(url).replace(/%3A/gi, ':').replace(/%2F/gi, '/').replace(/%3F/gi, '?').replace(/%3D/gi, '=');
+        }
+
         function buildForm() {
             subtitle.style.display = 'none';
             const tagline = document.getElementById('tagline');
@@ -184,7 +188,7 @@
                 }
                 const excludePart = excludeParam ? '&exclude=' + encodeURIComponent(excludeParam) : '';
                 const oldAddressPart = isOldAddress ? '&old=true' : '';
-                window.location.href = window.location.pathname + '?url=' + encodeURIComponent(rawVal) + excludePart + oldAddressPart;
+                window.location.href = window.location.pathname + '?url=' + sourceQueryValue(rawVal) + excludePart + oldAddressPart;
             });
 
             return wrapper;
@@ -301,7 +305,7 @@
             try {
                 if (window.history && history.replaceState) {
                     const parts = [];
-                    parts.push('url=' + encodeURIComponent(s));
+                    parts.push('url=' + sourceQueryValue(s));
                     if (rParam) parts.push('r=' + encodeURIComponent(rParam));
                     if (excludeParam) parts.push('exclude=' + encodeURIComponent(excludeParam));
                     if (isOldAddress) parts.push('old=true');
