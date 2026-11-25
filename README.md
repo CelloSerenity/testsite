@@ -28,8 +28,7 @@ Live page: https://altdirect.app/
 - Mobile‑friendly UI.
 
 > [!CAUTION]
-> AltSource URLs including ampersands (&) may encounter issues due to how URLs are handled by some clients and how the site constructs redirect links. If this causes problems in practice, please let me know and it may be addressed in a future update.
-
+> AltSource URLs including ampersands (&) may encounter issues due to how URLs are handled by some clients and how the site constructs redirect links.
 ---
 
 ## How it works
